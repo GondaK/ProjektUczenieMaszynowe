@@ -61,13 +61,14 @@ class Data:
 
     def stratTrain(self):
         self.train.prepareTrainData(self.dataFrame, self.resultColumn)
-        self.train.trainSVC()
+        self.train.trainSVM()
         self.train.trainRandomForestClassifier()
+        self.pickedModelName = self.train.pickBetterModel()
 
     def predictForOne(self, collegeEntry):
         data = self.parser.parse(collegeEntry.toDataFrame()).to_numpy()
 
-        with open(self.train.getHandleName(), 'rb') as handle:
+        with open(self.pickedModelName, 'rb') as handle:
             clf = pickle.load(handle)
         return clf.predict(data)
 
@@ -77,8 +78,8 @@ class Train:
         self.handleName = handleName
         self.accuracy_compare = {}
 
-    def getHandleName(self):
-        return f"{self.handleName}.pickle"
+    def getHandleName(self, serialization_name):
+        return f"{serialization_name}-{self.handleName}.pickle"
 
     def prepareTrainData(self, dataFrame, resultColumn):
         self.dataFrame = dataFrame
@@ -86,13 +87,13 @@ class Train:
         y = self.dataFrame.loc[:, resultColumn].to_numpy()
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=12345)
 
-    def trainModel(self, classifier, feature_vector_train, label, feature_vector_valid):
+    def trainModel(self, classifier, serialization_name):
         # trenuj model
-        classifier.fit(feature_vector_train, label)
+        classifier.fit(self.X_train, self.y_train)
 
         # wygeneruj przewidywania modelu dla zbioru testowego
-        predictions = classifier.predict(feature_vector_valid)
-        with open(self.getHandleName(), 'wb') as handle:
+        predictions = classifier.predict(self.X_test)
+        with open(self.getHandleName(serialization_name), 'wb') as handle:
             pickle.dump(classifier, handle)
 
         # dokonaj ewaluacji modelu na podstawie danych testowych
@@ -100,19 +101,61 @@ class Train:
         score_vals = [scores[0][0], scores[1][0], scores[2][0], metrics.accuracy_score(predictions, self.y_test)]
         return score_vals
 
-    def trainSVC(self):
-        accuracy = self.trainModel(svm.SVC(), self.X_train, self.y_train, self.X_test)
-        self.accuracy_compare['SVM'] = accuracy
+    def trainSVM(self):
+        name = 'SVM'
+        accuracy = self.trainModel(svm.SVC(), name)
+        self.accuracy_compare[name] = accuracy
+
+        name = 'SVM-gamma-auto'
+        accuracy = self.trainModel(svm.SVC(gamma='auto'), name)
+        self.accuracy_compare[name] = accuracy
+
+        name = 'SVM-kernel-sigmoid'
+        accuracy = self.trainModel(svm.SVC(kernel='sigmoid'), name)
+        self.accuracy_compare[name] = accuracy
+
+        for i in range(5):
+            name = 'SVM-degree-' + str(i)
+            accuracy = self.trainModel(svm.SVC(degree=i), name)
+            self.accuracy_compare[name] = accuracy
 
     def trainRandomForestClassifier(self):
-        accuracy = self.trainModel(ensemble.RandomForestClassifier(), self.X_train, self.y_train, self.X_test)
-        self.accuracy_compare['RF'] = accuracy
+        name = 'RF'
+        accuracy = self.trainModel(ensemble.RandomForestClassifier(), name)
+        self.accuracy_compare[name] = accuracy
+
+        for i in range(5):
+            name = 'RF-min_samples_split-' + str(i)
+            accuracy = self.trainModel(ensemble.RandomForestClassifier(min_samples_split=i*2+2), name)
+            self.accuracy_compare[name] = accuracy
+
+        name = 'RF-criterion-entropy'
+        accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='entropy'), name)
+        self.accuracy_compare[name] = accuracy
+
+        
+        name = 'RF-criterion-log_loss'
+        accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='log_loss'), name)
+        self.accuracy_compare[name] = accuracy
 
     def showComparesion(self):
         df_compare = pd.DataFrame(self.accuracy_compare, index=['precision', 'recall', 'f1 score', 'accuracy'])
         df_compare.plot(kind='bar')
         plt.show()
+    
+    def pickBetterModel(self):
+        bestModel = ''
+        for model in self.accuracy_compare:
+            if bestModel == '':
+                bestModel = model
+                continue
+            
+            if self.accuracy_compare[model][3] > self.accuracy_compare[bestModel][3]:
+                bestModel = model
+        
+        return self.getHandleName(bestModel)
 
+    
 
 
 class CollegeEntry:
@@ -160,6 +203,7 @@ class CollegeEntry:
 
 
 class TestNormalizer(unittest.TestCase):
+    
     parser = Parser({
         'type_school': {'Academic': 0, 'Vocational': 1},
         'school_accreditation': {'A': 0, 'B': 1},
@@ -177,8 +221,8 @@ class TestNormalizer(unittest.TestCase):
         data = {
             'testCase': {'xyz': 0, '123': 1},
         }
-        convertedData = parser.convertToInt('xyz', data['testCase'])
-        convertedData2 = parser.convertToInt('123', data['testCase'])
+        convertedData = self.parser.convertToInt('xyz', data['testCase'])
+        convertedData2 = self.parser.convertToInt('123', data['testCase'])
 
         self.assertEqual(0, convertedData)
         self.assertEqual(1, convertedData2)
@@ -205,15 +249,17 @@ class TestNormalizer(unittest.TestCase):
         testCe.typeSchool = 'Academic'
         testCe.schoolAccreditation = 'A'
         testCe.gender = 'Male'
-        testCe.interest = 'Not Interested'
+        testCe.interest = 'Less Interested'
         testCe.residence = 'Urban'
-        testCe.parentAge = 49
-        testCe.parentSalary = 4790000
-        testCe.houseArea = 80.2
-        testCe.averageGrades = 67.53
-        testCe.parentWasInCollege = True
+        testCe.parentAge = 56
+        testCe.parentSalary = 6950000
+        testCe.houseArea = 83
+        testCe.averageGrades = 84
+        testCe.parentWasInCollege = False
         self.assertEqual(True, testD.predictForOne(testCe))
 
+
+unittest.main(exit=False)
 
 parser = Parser({
     'type_school': {'Academic': 0, 'Vocational': 1},
@@ -228,15 +274,11 @@ parser = Parser({
         'Very Interested': 4}
 })
 
-unittest.main(exit=False)
-
 d = Data('college.csv', 'in_college', parser, Train('rick'))
 d.parse()
 d.fillEmptyData()
 d.printHead()
 d.stratTrain()
-
-
 
 ce = CollegeEntry()
 ce.typeSchool = 'Academic'
