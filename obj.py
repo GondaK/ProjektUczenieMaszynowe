@@ -71,6 +71,9 @@ class Data:
         with open(self.pickedModelName, 'rb') as handle:
             clf = pickle.load(handle)
         return clf.predict(data)
+    
+    def showComparesion(self):
+        self.train.showComparesion()
 
 
 class Train:
@@ -143,7 +146,7 @@ class Train:
         df_compare.plot(kind='bar')
         plt.show()
     
-    def pickBetterModel(self):
+    def pickBetterModel(self):#todo test
         bestModel = ''
         for model in self.accuracy_compare:
             if bestModel == '':
@@ -156,7 +159,6 @@ class Train:
         return self.getHandleName(bestModel)
 
     
-
 
 class CollegeEntry:
     typeSchool = None
@@ -201,21 +203,27 @@ class CollegeEntry:
             self.parentWasInCollege
         ]
 
+class TestData(unittest.TestCase):
+    data = Data('test.csv', 'result', Parser({}), Train('test'))
+    def testfillEmptyData(self):
+        self.data.dataFrame = pd.DataFrame({
+            'a': [2.0,2.0,None,2.0],
+            'b': [2.0,None,2.0,None],
+            'c': [2.0,2.0,2.0,None]
+        })
+        convertedData = pd.DataFrame({
+            'a': [2.0,2.0,2.0,2.0],
+            'b': [2.0,2.0,2.0,2.0],
+            'c': [2.0,2.0,2.0,2.0]
+        })
+        self.data.fillEmptyData()
+        
+        self.assertTrue(convertedData.equals(self.data.dataFrame))
 
 class TestNormalizer(unittest.TestCase):
     
-    parser = Parser({
-        'type_school': {'Academic': 0, 'Vocational': 1},
-        'school_accreditation': {'A': 0, 'B': 1},
-        'gender': {'Male': 0, 'Female': 1},
-        'residence': {'Urban': 0, 'Rural': 1},
-        'interest': {
-            'Not Interested': 0,
-            'Uncertain': 1,
-            'Less Interested': 2,
-            'Quiet Interested': 3,
-            'Very Interested': 4}
-    })
+    parser = Parser({'test': {'a': 0, 'b': 1}})
+    dataFrame = Parser({'test': {'a': 0, 'b': 1}})
 
     def testConvertToInt(self):
         data = {
@@ -227,37 +235,37 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual(0, convertedData)
         self.assertEqual(1, convertedData2)
 
-    def testTraining(self):
-        testParser = Parser({
-            'type_school': {'Academic': 0, 'Vocational': 1},
-            'school_accreditation': {'A': 0, 'B': 1},
-            'gender': {'Male': 0, 'Female': 1},
-            'residence': {'Urban': 0, 'Rural': 1},
-            'interest': {
-                'Not Interested': 0,
-                'Uncertain': 1,
-                'Less Interested': 2,
-                'Quiet Interested': 3,
-                'Very Interested': 4}
+    def testParse(self):
+        data = pd.DataFrame({
+            'test': ['a', 'b']
         })
 
-        testD = Data('college.csv', 'in_college', testParser, Train('test'))
-        testD.parse()
-        testD.fillEmptyData()
-        testD.stratTrain()
-        testCe = CollegeEntry()
-        testCe.typeSchool = 'Academic'
-        testCe.schoolAccreditation = 'A'
-        testCe.gender = 'Male'
-        testCe.interest = 'Less Interested'
-        testCe.residence = 'Urban'
-        testCe.parentAge = 56
-        testCe.parentSalary = 6950000
-        testCe.houseArea = 83
-        testCe.averageGrades = 84
-        testCe.parentWasInCollege = False
-        self.assertEqual(True, testD.predictForOne(testCe))
+        dataCompare = pd.DataFrame({
+            'test': [0, 1]
+        })
+        convertedData = self.parser.parse(data)
+        
+        self.assertTrue(convertedData.equals(dataCompare))
 
+class TestTrain(unittest.TestCase):
+    def testPickBetterModel(self):
+        name = 'test'
+        train = Train(name)
+        train.accuracy_compare = {
+            'a': [0,0,0,0],
+            'b': [0,0,0,1],
+        }
+
+        self.assertEqual(f"b-{name}.pickle", train.pickBetterModel())
+
+        
+        train.accuracy_compare = {
+            'a': [1,2,3,4],
+            'b': [5,6,7,8],
+            'c': [9,10,11,100],
+        }
+
+        self.assertEqual(f"c-{name}.pickle", train.pickBetterModel())
 
 unittest.main(exit=False)
 
@@ -279,6 +287,8 @@ d.parse()
 d.fillEmptyData()
 d.printHead()
 d.stratTrain()
+d.showCorrelations()
+d.showComparesion()
 
 ce = CollegeEntry()
 ce.typeSchool = 'Academic'
