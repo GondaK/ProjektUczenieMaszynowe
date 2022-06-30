@@ -146,7 +146,7 @@ class Train:
         df_compare.plot(kind='bar')
         plt.show()
     
-    def pickBetterModel(self):#todo test
+    def pickBetterModel(self):
         bestModel = ''
         for model in self.accuracy_compare:
             if bestModel == '':
