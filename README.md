@@ -24,6 +24,9 @@ Realizuje również podstawowy find tuting i generuje wiele modeli, a następnie
 ### 4. CollegeEntry:
 Klasa reprezentująca encję danych, wykorzystywana jest do predyktowania za pomocą wytrenowanego modelu. 
 
+### 5. Klasy Testujące:
+Klasy odpowiadające za uruchamianie testów jednostkowych.
+
 ## Źródło danych:
 https://www.kaggle.com/datasets/saddamazyazy/go-to-college-dataset?fbclid=IwAR2SfffmDMFQ4hJNEn9Is4yAD1tJpDnsYDTha2DhCrOXZOdpbdoqfip9ZQY
 
