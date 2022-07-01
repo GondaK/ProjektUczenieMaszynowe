@@ -128,7 +128,7 @@ class Train:
         self.accuracy_compare[name] = accuracy
 
         for i in range(5):
-            name = 'RF-min_samples_split-' + str(i)
+            name = 'RF-min_samples_split-' + str(i*2+2)
             accuracy = self.trainModel(ensemble.RandomForestClassifier(min_samples_split=i*2+2), name)
             self.accuracy_compare[name] = accuracy
 
