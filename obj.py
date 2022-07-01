@@ -71,7 +71,7 @@ class Data:
         with open(self.pickedModelName, 'rb') as handle:
             clf = pickle.load(handle)
         return clf.predict(data)
-    
+
     def showComparesion(self):
         self.train.showComparesion()
 
@@ -128,15 +128,14 @@ class Train:
         self.accuracy_compare[name] = accuracy
 
         for i in range(5):
-            name = 'RF-min_samples_split-' + str(i*2+2)
-            accuracy = self.trainModel(ensemble.RandomForestClassifier(min_samples_split=i*2+2), name)
+            name = 'RF-min_samples_split-' + str(i * 2 + 2)
+            accuracy = self.trainModel(ensemble.RandomForestClassifier(min_samples_split=i * 2 + 2), name)
             self.accuracy_compare[name] = accuracy
 
         name = 'RF-criterion-entropy'
         accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='entropy'), name)
         self.accuracy_compare[name] = accuracy
 
-        
         name = 'RF-criterion-log_loss'
         accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='log_loss'), name)
         self.accuracy_compare[name] = accuracy
@@ -145,20 +144,19 @@ class Train:
         df_compare = pd.DataFrame(self.accuracy_compare, index=['precision', 'recall', 'f1 score', 'accuracy'])
         df_compare.plot(kind='bar')
         plt.show()
-    
+
     def pickBetterModel(self):
         bestModel = ''
         for model in self.accuracy_compare:
             if bestModel == '':
                 bestModel = model
                 continue
-            
+
             if self.accuracy_compare[model][3] > self.accuracy_compare[bestModel][3]:
                 bestModel = model
-        
+
         return self.getHandleName(bestModel)
 
-    
 
 class CollegeEntry:
     typeSchool = None
@@ -203,25 +201,27 @@ class CollegeEntry:
             self.parentWasInCollege
         ]
 
+
 class TestData(unittest.TestCase):
     data = Data('test.csv', 'result', Parser({}), Train('test'))
+
     def testfillEmptyData(self):
         self.data.dataFrame = pd.DataFrame({
-            'a': [2.0,2.0,None,2.0],
-            'b': [2.0,None,2.0,None],
-            'c': [2.0,2.0,2.0,None]
+            'a': [2.0, 2.0, None, 2.0],
+            'b': [2.0, None, 2.0, None],
+            'c': [2.0, 2.0, 2.0, None]
         })
         convertedData = pd.DataFrame({
-            'a': [2.0,2.0,2.0,2.0],
-            'b': [2.0,2.0,2.0,2.0],
-            'c': [2.0,2.0,2.0,2.0]
+            'a': [2.0, 2.0, 2.0, 2.0],
+            'b': [2.0, 2.0, 2.0, 2.0],
+            'c': [2.0, 2.0, 2.0, 2.0]
         })
         self.data.fillEmptyData()
-        
+
         self.assertTrue(convertedData.equals(self.data.dataFrame))
 
+
 class TestNormalizer(unittest.TestCase):
-    
     parser = Parser({'test': {'a': 0, 'b': 1}})
     dataFrame = Parser({'test': {'a': 0, 'b': 1}})
 
@@ -244,28 +244,29 @@ class TestNormalizer(unittest.TestCase):
             'test': [0, 1]
         })
         convertedData = self.parser.parse(data)
-        
+
         self.assertTrue(convertedData.equals(dataCompare))
+
 
 class TestTrain(unittest.TestCase):
     def testPickBetterModel(self):
         name = 'test'
         train = Train(name)
         train.accuracy_compare = {
-            'a': [0,0,0,0],
-            'b': [0,0,0,1],
+            'a': [0, 0, 0, 0],
+            'b': [0, 0, 0, 1],
         }
 
         self.assertEqual(f"b-{name}.pickle", train.pickBetterModel())
 
-        
         train.accuracy_compare = {
-            'a': [1,2,3,4],
-            'b': [5,6,7,8],
-            'c': [9,10,11,100],
+            'a': [1, 2, 3, 4],
+            'b': [5, 6, 7, 8],
+            'c': [9, 10, 11, 100],
         }
 
         self.assertEqual(f"c-{name}.pickle", train.pickBetterModel())
+
 
 unittest.main(exit=False)
 
