@@ -284,8 +284,8 @@ d.parse()
 d.fillEmptyData()
 d.printHead()
 d.stratTrain()
-#d.showCorrelations()
-#d.showComparesion()
+d.showCorrelations()
+d.showComparesion()
 
 ce = CollegeEntry()
 ce.typeSchool = 'Academic'
