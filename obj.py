@@ -136,10 +136,6 @@ class Train:
         accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='entropy'), name)
         self.accuracy_compare[name] = accuracy
 
-        name = 'RF-criterion-log_loss'
-        accuracy = self.trainModel(ensemble.RandomForestClassifier(criterion='log_loss'), name)
-        self.accuracy_compare[name] = accuracy
-
     def showComparesion(self):
         df_compare = pd.DataFrame(self.accuracy_compare, index=['precision', 'recall', 'f1 score', 'accuracy'])
         df_compare.plot(kind='bar')
@@ -288,8 +284,8 @@ d.parse()
 d.fillEmptyData()
 d.printHead()
 d.stratTrain()
-d.showCorrelations()
-d.showComparesion()
+#d.showCorrelations()
+#d.showComparesion()
 
 ce = CollegeEntry()
 ce.typeSchool = 'Academic'
@@ -307,3 +303,55 @@ if d.predictForOne(ce):
     print('It is LIKELY that this person will go to College')
 else:
     print('It is UNLIKELY that this person will go to College')
+
+
+ce = CollegeEntry()
+ce.typeSchool = 'Vocational'
+ce.schoolAccreditation = 'B'
+ce.gender = 'Male'
+ce.interest = 'Not Interested'
+ce.residence = 'Rural'
+ce.parentAge = 40
+ce.parentSalary = 10000
+ce.houseArea = 30
+ce.averageGrades = 50.00
+ce.parentWasInCollege = False
+print('Person with low values: ' + str(d.predictForOne(ce)))
+
+ce.parentSalary = 10000000
+ce.houseArea = 30
+ce.averageGrades = 50.00
+print('Big parentSalary: ' + str(d.predictForOne(ce)))
+
+ce.parentSalary = 10000
+ce.houseArea = 30
+ce.averageGrades = 95.00
+print('Big averageGrades: ' + str(d.predictForOne(ce)))
+
+ce.parentSalary = 10000
+ce.houseArea = 250
+ce.averageGrades = 50.00
+print('Big houseArea: ' + str(d.predictForOne(ce)))
+
+ce.parentSalary = 1000000
+ce.houseArea = 250
+ce.averageGrades = 50.00
+print('Big parentSalary+houseArea: ' + str(d.predictForOne(ce)))
+
+ce.parentSalary = 100000
+ce.houseArea = 200
+ce.averageGrades = 80.00
+print('Medium parentSalary+houseArea+averageGrades: ' + str(d.predictForOne(ce)))
+
+ce = CollegeEntry()
+ce.typeSchool = 'Academic'
+ce.schoolAccreditation = 'A'
+ce.gender = 'Male'
+ce.interest = 'Very Interested'
+ce.residence = 'Urban'
+ce.parentAge = 45
+ce.parentSalary = 10000
+ce.houseArea = 30
+ce.averageGrades = 50.00
+ce.parentWasInCollege = True
+print('All high except parentSalary+houseArea+averageGrades: ' + str(d.predictForOne(ce)))

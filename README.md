@@ -90,3 +90,8 @@ Forest z parametrem min_samples_split ustawionym na 2 lub criterion ustawionym n
 Po przeanalizowaniu wyników oraz tabeli korelacji, mnożna zauważyć że na podstawie zgromadzonych danych,
 największy wpływ na to czy obiekt badań pójdzie na studia świadczy zamożność jego rodziców, wielkość mieszkania oraz
 średnia ocen.
+
+Przy próbach przewidywania wyniki nie są w pełni dokładne, jednak najczęściej największy wpływ zdają się mieć oceny. 
+Często uczeń mający wysokie wyniki w nauce nie potrzebuje innych wysokich wartości, jednak zdarzają się odejścia od normy. 
+Duża ilości pieniędzy rodziców, rozmiar mieszkania również potrafią spowodować że uczeń zostanie zklasyfikowany jako
+chętnego na pójście na studia. Pozostałe wartości zdają się nie mieć wpływu na ostateczny wynik.
